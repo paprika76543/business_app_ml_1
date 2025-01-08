@@ -1,0 +1,44 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  features:
+    build:
+      context: ./features
+    depends_on:
+      - rabbitmq
+
+  predict:
+    build:
+      context: ./predict
+    depends_on:
+      - rabbitmq
+    volumes:
+      - ./predict:/app
+
+  metric:
+    build:
+      context: ./metric
+    depends_on:
+      - rabbitmq
+    volumes:
+      - ./logs:/app/logs
+
+  plot:
+    build:
+      context: ./plot
+    depends_on:
+      - rabbitmq
+    volumes:
+      - ./logs:/app/logs
